@@ -1,0 +1,3 @@
+[submodule "attraction-classifier"]
+	path = attraction-classifier
+	url = git@github.com:simonSlamka/attraction-classifier
