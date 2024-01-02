@@ -43,12 +43,11 @@ def calc_compat_score(S: Tuple[str, float], cosim: float, dot: float, euclidean:
     print(f"{color4}term4: {term4}{reset}")
     print(f"{color5}term5: {term5}{reset}")
 
-# TODO: the dict is not being interpreted correctly. it should be interpreted as ranges, not discrete values
     scoresDict = {
-        "veryCompatible": 0.95,
-        "compatible": 0.9,
-        "somewhat compatible": 0.85,
-        "incompatible": 0.3
+        (0.9, 1.0): "veryCompatible",
+        (0.85, 0.89): "compatible",
+        (0.8, 0.84): "somewhat compatible",
+        (0, 0.79): "incompatible"
     }
 
     composite = term1 + term2 + term3 + term4 + term5
@@ -56,10 +55,9 @@ def calc_compat_score(S: Tuple[str, float], cosim: float, dot: float, euclidean:
     # for the general score
 
     def get_literal_score():
-        for k, v in scoresDict.items():
-            if composite >= v:
-                return k
-        return "incompatible"
+        for scoreRange, label in scoresDict.items():
+            if scoreRange[0] <= composite <= scoreRange[1]:
+                return label
 
     # score = w1 * S[1] + w2 * convexHullJaccardRatio + w3 * (1 / (1 + euclidean)) + w4 * cosim + w5 * dot
     return (composite, get_literal_score())
