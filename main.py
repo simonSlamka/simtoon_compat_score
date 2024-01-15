@@ -30,7 +30,7 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     magRatio = min(mag1, mag2) / max(mag1, mag2) if max(mag1, mag2) != 0 else 0
 
     term1 = w1 * S[1]
-    term2 = w2 * (1 if bIsEmotionallyAvailable else -1)
+    term2 = w2 * (1 if bIsEmotionallyAvailable else 0)
     term3 = w3 * tc
     term4 = w4 * lsm
     term5 = w5 * convexHullJaccardRatio
@@ -45,7 +45,7 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     print(f"{color4}convex hull jaccard ratio: {convexHullJaccardRatio}{reset}")
     print(f"{color5}euclidean: {euclidean}{reset}")
     print(f"{color6}cosim: {cosim}; magRatio: {magRatio}{reset}")
-    print(f"{color7}dot: {dot}{reset}")
+    print(f"{color7}normalized dot: {dot}{reset}")
 
     print("\n")
 
@@ -112,11 +112,13 @@ if __name__ == "__main__":
 
     # csvPath = "/home/simtoon/git/ACARISv2/datasets/sarah/sarah.csv"
     # msgs, userID = userEmbedder.load_msgs_from_csv(csvPath=csvPath, usernameCol="Username", msgCol="Content", sep=",")
-    # print(f"Loaded {len(msgs[0] + msgs[1])} messages from {len(userID)} users")
+    # users = [userID[0], userID[1]]
 
     datPath = "/home/simtoon/git/ACARISv2/datasets/messages.dat"
     users = ["simtoon1011#0", "simmiefairy#0"]
     msgs, userID = userEmbedder.load_msgs_from_dat(datPath=datPath, limitToUsers=users)
+
+    print(f"Loaded {len(msgs[0] + msgs[1])} messages from {len(userID)} users")
 
     for user in users:
         if "simmie" in user:
@@ -169,7 +171,7 @@ if __name__ == "__main__":
     convexHullJaccardRatio = sum(jaccards.values()) / len(jaccards)
     mag1 = comparison["magnitude1"]
     mag2 = comparison["magnitude2"]
-    w1, w2, w3, w4, w5, w6, w7, w8 = 0.45, 0.2, 0.1, 0.05, 0.05, 0.05, 0.05, 0.05
+    w1, w2, w3, w4, w5, w6, w7, w8 = 0.4, 0.18, 0.17, 0.05, 0.05, 0.05, 0.05, 0.05
     wSum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8
     if not isclose(wSum, 1):
         raise ValueError(f"Weights must sum to 1\nThey now sum to: {wSum}") # sanity check
