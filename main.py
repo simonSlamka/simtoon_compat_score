@@ -93,7 +93,8 @@ def calc_fwords(posTags: list):
 
 def calc_lsm(c1, c2):
     funcPosTags = {"CC", "DT", "EX", "IN", "MD", "PDT", "POS", "PRP", "PRP$", "RP", "TO", "WDT", "WP", "WP$", "WRB"}
-
+    c1 = {tag: c1[tag] for tag in c1 if tag in funcPosTags}
+    c2 = {tag: c2[tag] for tag in c2 if tag in funcPosTags}
     lsm = 1 - sum([abs(c1[tag] - c2[tag]) for tag in funcPosTags]) / len(funcPosTags)
     return lsm
 
@@ -136,25 +137,26 @@ if __name__ == "__main__":
     tc = calc_tc_ratio(t1, t2)
     print(f"terms1: {t1}; terms2: {t2}; tc: {tc}")
 
-    herdan1, herdan2 = lex1.Herdan, lex2.Herdan
-    print(f"herdan1: {herdan1}; herdan2: {herdan2}")
+    maas1, maas2 = lex1.Maas, lex2.Maas # ! the lower, the richer the vocab
+    maasRatio = min(maas1, maas2) / max(maas1, maas2)
+    print(f"maas1: {maas1}; maas2: {maas2}; maasRatio: {maasRatio}")
 
     posTags1, posTags2 = list(), list()
 
 
-    # TODO: for some weird reason, `LSM` is always 1.0 - fix this
     for msg in msgs[0]:
-        sentence = Sentence(msg)
+        sentence = Sentence(str(msg))
         tagger.predict(sentence)
-        posTags1.extend([tag.tag for tag in sentence.get_spans("pos")])
+        posTags1.append([sentence.labels[i].value for i in range(len(sentence.labels))])
     for msg in msgs[1]:
-        sentence = Sentence(msg)
+        sentence = Sentence(str(msg))
         tagger.predict(sentence)
-        posTags2.extend([tag.tag for tag in sentence.get_spans("pos")])
+        posTags2.append([sentence.labels[i].value for i in range(len(sentence.labels))])
 
+    # TODO: LSM is still fucked up - the formula is likely off. getting large negative values
     c1, c2 = calc_fwords(posTags1), calc_fwords(posTags2)
     lsm = calc_lsm(c1, c2)
-    print(f"lsm: {lsm}")
+    print(f"lsm: {lsm}\nc1: {c1}\nc2: {c2}")
 
     emb1 = userEmbedder.gen_embs_from_observations(msgs[0], bStore=True, userID=userID[0])
     emb2 = userEmbedder.gen_embs_from_observations(msgs[1], bStore=True, userID=userID[1])
