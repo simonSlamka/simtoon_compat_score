@@ -171,7 +171,7 @@ if __name__ == "__main__":
     convexHullJaccardRatio = sum(jaccards.values()) / len(jaccards)
     mag1 = comparison["magnitude1"]
     mag2 = comparison["magnitude2"]
-    w1, w2, w3, w4, w5, w6, w7, w8 = 0.4, 0.18, 0.17, 0.05, 0.05, 0.05, 0.05, 0.05
+    w1, w2, w3, w4, w5, w6, w7, w8 = 0.3, 0.18, 0.17, 0.15, 0.05, 0.05, 0.05, 0.05
     wSum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8
     if not isclose(wSum, 1):
         raise ValueError(f"Weights must sum to 1\nThey now sum to: {wSum}") # sanity check
