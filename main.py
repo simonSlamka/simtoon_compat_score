@@ -6,6 +6,7 @@ from lexicalrichness import LexicalRichness
 from flair.data import Sentence
 from flair.models import SequenceTagger
 from numpy import isclose
+import nltk
 
 
 def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: float, lsm: float, cosim: float, dot: float, euclidean: float, convexHullJaccardRatio: float, mag1: float, mag2: float, w1: float, w2: float, w3: float, w4: float, w5: float, w6: float, w7: float, w8: float) -> float:
@@ -93,8 +94,8 @@ def calc_fwords(posTags: list):
 
 def calc_lsm(c1, c2):
     funcPosTags = {"CC", "DT", "EX", "IN", "MD", "PDT", "POS", "PRP", "PRP$", "RP", "TO", "WDT", "WP", "WP$", "WRB"}
-    c1 = {tag: c1[tag] for tag in c1 if tag in funcPosTags}
-    c2 = {tag: c2[tag] for tag in c2 if tag in funcPosTags}
+    c1 = {tag: c1[tag] / sum(c1.values()) for tag in c1 if tag in funcPosTags}
+    c2 = {tag: c2[tag] / sum(c2.values()) for tag in c2 if tag in funcPosTags}
     lsm = 1 - sum([abs(c1[tag] - c2[tag]) for tag in funcPosTags]) / len(funcPosTags)
     return lsm
 
@@ -131,7 +132,18 @@ if __name__ == "__main__":
         else:
             bIsEmotionallyAvailable = False
 
-    lex1, lex2 = LexicalRichness(" ".join(msgs[0])), LexicalRichness(" ".join(msgs[1]))
+    processedMsgs = [[], []]
+    stemmer = nltk.SnowballStemmer("english")
+    for msg in msgs[0]:
+        msgWords = nltk.word_tokenize(str(msg))
+        stemmedWords = [stemmer.stem(word) for word in msgWords]
+        processedMsgs[0].append(" ".join(stemmedWords))
+    for msg in msgs[1]:
+        msgWords = nltk.word_tokenize(str(msg))
+        stemmedWords = [stemmer.stem(word) for word in msgWords]
+        processedMsgs[1].append(" ".join(stemmedWords))
+
+    lex1, lex2 = LexicalRichness(" ".join(processedMsgs[0])), LexicalRichness(" ".join(processedMsgs[1]))
 
     t1, t2 = lex1.terms, lex2.terms
     tc = calc_tc_ratio(t1, t2)
@@ -142,18 +154,15 @@ if __name__ == "__main__":
     print(f"maas1: {maas1}; maas2: {maas2}; maasRatio: {maasRatio}")
 
     posTags1, posTags2 = list(), list()
-
-
-    for msg in msgs[0]:
+    for msg in processedMsgs[0]:
         sentence = Sentence(str(msg))
         tagger.predict(sentence)
         posTags1.append([sentence.labels[i].value for i in range(len(sentence.labels))])
-    for msg in msgs[1]:
+    for msg in processedMsgs[1]:
         sentence = Sentence(str(msg))
         tagger.predict(sentence)
         posTags2.append([sentence.labels[i].value for i in range(len(sentence.labels))])
 
-    # TODO: LSM is still fucked up - the formula is likely off. getting large negative values
     c1, c2 = calc_fwords(posTags1), calc_fwords(posTags2)
     lsm = calc_lsm(c1, c2)
     print(f"lsm: {lsm}\nc1: {c1}\nc2: {c2}")
