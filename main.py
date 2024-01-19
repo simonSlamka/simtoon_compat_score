@@ -30,8 +30,11 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
 
     magRatio = min(mag1, mag2) / max(mag1, mag2) if max(mag1, mag2) != 0 else 0
 
-    term1 = w1 * S[1]
-    term2 = w2 * (1 if bIsEmotionallyAvailable else 0)
+    if S == 0:
+        term1 = 0
+    else:
+        term1 = w1 * S[1]
+    term2 = w2 * (1 if bIsEmotionallyAvailable else int(0))
     term3 = w3 * tc
     term4 = w4 * lsm
     term5 = w5 * convexHullJaccardRatio
@@ -39,7 +42,10 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     term7 = w7 * cosim * magRatio
     term8 = w8 * dot
 
-    print(f"{color1}attaction score: {S[1]}{reset}")
+    if S == 0:
+        print(f"{color1}attaction score: {S}{reset}")
+    else:
+        print(f"{color1}attaction score: {S[1]}{reset}")
     print(f"{color2}emotionally available: {bIsEmotionallyAvailable}{reset}")
     print(f"{color6}term count ratio: {tc}{reset}")
     print(f"{color3}lsm: {lsm}{reset}")
@@ -104,6 +110,9 @@ def calc_tc_ratio(tc1, tc2): # the term count ratio
         return 0
     return min(tc1, tc2) / max(tc1, tc2)
 
+def calc_errr(msgs1, msgs2):
+    raise NotImplementedError
+
 
 if __name__ == "__main__":
     attr = importlib.import_module("attraction-classifier.infer").AttractionClassifier()
@@ -116,9 +125,13 @@ if __name__ == "__main__":
     # msgs, userID = userEmbedder.load_msgs_from_csv(csvPath=csvPath, usernameCol="Username", msgCol="Content", sep=",")
     # users = [userID[0], userID[1]]
 
-    datPath = "/home/simtoon/git/ACARISv2/datasets/messages.dat"
-    users = ["simtoon1011#0", "simmiefairy#0"]
-    msgs, userID = userEmbedder.load_msgs_from_dat(datPath=datPath, limitToUsers=users)
+    # datPath = "/home/simtoon/git/ACARISv2/datasets/messages.dat"
+    # users = ["simtoon1011#0", "simmiefairy#0"]
+    # msgs, userID = userEmbedder.load_msgs_from_dat(datPath=datPath, limitToUsers=users)
+
+    txtPath = "/home/simtoon/git/ACARISv2/datasets/allan/DMs.txt"
+    users = ["Simtoon", "AllanMN"]
+    msgs, userID = userEmbedder.load_direct_msgs_from_copied_discord_txt(txtPath=txtPath)
 
     print(f"Loaded {len(msgs[0] + msgs[1])} messages from {len(userID)} users")
 
@@ -187,7 +200,11 @@ if __name__ == "__main__":
     if not isclose(wSum, 1):
         raise ValueError(f"Weights must sum to 1\nThey now sum to: {wSum}") # sanity check
     S, _ = attr.classify_image("simone.png")
-    S = (S[0]["label"], S[0]["score"] if S[0]["label"] == "pos" else 1 - S[0]["score"])
+    for user in users:
+        if "Allan" in user:
+            S = 0 # not applicable
+    if S != 0:
+        S = (S[0]["label"], S[0]["score"] if S[0]["label"] == "pos" else 1 - S[0]["score"])
 
 
     print(colored(f"\nComposite score: {calc_compat_score(S=S, bIsEmotionallyAvailable=bIsEmotionallyAvailable, tc=tc, lsm=lsm, cosim=cosim, dot=dot, euclidean=euclidean, convexHullJaccardRatio=convexHullJaccardRatio, mag1=mag1, mag2=mag2, w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6, w7=w7, w8=w8)}", "blue"))
