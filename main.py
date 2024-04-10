@@ -13,7 +13,7 @@ from torch import cat
 load_dotenv()
 
 
-def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: float, lsm: float, errr: float, cosim: float, dot: float, euclidean: float, convexHullJaccardRatio: float, mag1: float, mag2: float, w1: float, w2: float, w3: float, w4: float, w5: float, w6: float, w7: float, w8: float, w9: float) -> float:
+def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: float, lsm: float, errr: float, cosim: float, covar: float, euclidean: float, convexHullJaccardRatio: float, mag1: float, mag2: float, w1: float, w2: float, w3: float, w4: float, w5: float, w6: float, w7: float, w8: float, w9: float) -> float:
     """
     The function `calc_compat_score` calculates a compatibility score based on various input parameters
     and returns the score along with a label indicating the level of compatibility.
@@ -26,7 +26,7 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     @param lsm The parameter "lsm" stands for "LSM" and represents a numerical value.
     @param errr The parameter "errr" represents the error rate reduction ratio.
     @param cosim The parameter `cosim` represents the cosine similarity between two vectors.
-    @param dot The parameter "dot" represents the normalized dot product between two vectors.
+    @param covar The parameter `covar` represents the covariance between two vectors.
     @param euclidean The parameter "euclidean" represents the Euclidean distance between two vectors.
     @param convexHullJaccardRatio The parameter "convexHullJaccardRatio" represents the ratio of the
     intersection of the convex hulls of two objects to the union of the convex hulls. It is used as a
@@ -66,24 +66,24 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     reset = cAttr("reset")
 
     """
-   compat = w_1 \cdot S + w_2 \cdot \epsilon + w_3 \cdot TCR + w_4 \cdot \text{LSM} + w_5 \cdot \text{ERRR} + w_6 \cdot ratio_{hull} + w_7 \cdot euclidean_{norm} + w_8 \cdot (\cos(\text{sim}) \times \text{magRatio}) + w_9 \cdot dot_{norm}
+    compat = w_1 \cdot S + w_2 \cdot \epsilon + w_3 \cdot TCR + w_4 \cdot \text{LSM} + w_5 \cdot \text{ERRR} + w_6 \cdot ratio_{hull} + w_7 \cdot euclidean_{norm} + w_8 \cdot (\cos(\text{sim}) \times \text{magRatio}) + w_9 \cdot covar
     """
 
-    dot = (dot / (mag1 * mag2) + 1) / 2 if mag1 * mag2 > 0 else 0.5
+    # dot = (dot / (mag1 * mag2) + 1) / 2 if mag1 * mag2 > 0 else 0.5
 
     magRatio = min(mag1, mag2) / max(mag1, mag2) if max(mag1, mag2) != 0 else 0
 
     errr = 1 - errr
 
-    term1 = 0 if S == 0 else w1 * S[1]
-    term2 = w2 * (1 if bIsEmotionallyAvailable else int(0))
-    term3 = w3 * tc
-    term4 = w4 * lsm
-    term5 = w5 * errr
-    term6 = w6 * convexHullJaccardRatio
-    term7 = w7 * (1 / (1 + euclidean))
-    term8 = w8 * cosim * magRatio
-    term9 = w9 * dot
+    term1 = round(0 if S == 0 else w1 * S[1], 5)
+    term2 = round(w2 * (1 if bIsEmotionallyAvailable else int(0)), 5)
+    term3 = round(w3 * tc, 5)
+    term4 = round(w4 * lsm, 5)
+    term5 = round(w5 * errr, 5)
+    term6 = round(w6 * convexHullJaccardRatio, 5)
+    term7 = round(w7 * (1 / (1 + euclidean)), 5)
+    term8 = round(w8 * cosim * magRatio, 5)
+    term9 = round(w9 * covar, 5)
 
     print(f"{color1}attaction score: {S if S == 0 else S[1]}{reset}")
     print(f"{color2}emotionally available: {bIsEmotionallyAvailable}{reset}")
@@ -93,19 +93,19 @@ def calc_compat_score(S: Tuple[str, float], bIsEmotionallyAvailable: bool, tc: f
     print(f"{color4}convex hull jaccard ratio: {convexHullJaccardRatio}{reset}")
     print(f"{color5}euclidean: {euclidean}{reset}")
     print(f"{color6}cosim: {cosim}; magRatio: {magRatio}{reset}")
-    print(f"{color7}normalized dot: {dot}{reset}")
+    print(f"{color7}covar: {covar}{reset}")
 
     print("\n")
 
-    print(f"{color1}term1: {term1}{reset}") # attraction score
-    print(f"{color2}term2: {term2}{reset}") # emotional availability
-    print(f"{color3}term3: {term3}{reset}") # term count ratio
-    print(f"{color4}term4: {term4}{reset}") # linguistic style matching
-    print(f"{color5}term5: {term5}{reset}") # estimated relevant response ratio
-    print(f"{color6}term6: {term6}{reset}") # convex hull jaccard ratio
-    print(f"{color7}term7: {term7}{reset}") # euclidean distance between the tips of the mean embedding vectors of the two users
-    print(f"{color2}term8: {term8}{reset}") # cosine similarity between the mean embedding vectors of the two users
-    print(f"{color3}term9: {term9}{reset}") # normalized dot product between the mean embedding vectors of the two users
+    print(f"{color1}term1: {term1}{reset}")  # attraction score
+    print(f"{color2}term2: {term2}{reset}")  # emotional availability
+    print(f"{color3}term3: {term3}{reset}")  # term count ratio
+    print(f"{color4}term4: {term4}{reset}")  # linguistic style matching
+    print(f"{color5}term5: {term5}{reset}")  # estimated relevant response ratio
+    print(f"{color6}term6: {term6}{reset}")  # convex hull jaccard ratio
+    print(f"{color7}term7: {term7}{reset}")  # euclidean distance between the tips of the mean embedding vectors of the two users
+    print(f"{color2}term8: {term8}{reset}")  # cosine similarity between the mean embedding vectors of the two users
+    print(f"{color3}term9: {term9}{reset}")  # covariance between the mean embedding vectors of the two users
 
     scoresDict = {
         (0.9, 1.0): "veryCompatible",
@@ -281,13 +281,17 @@ if __name__ == "__main__":
     # msgs, userID = userEmbedder.load_msgs_from_csv(csvPath=csvPath, usernameCol="Username", msgCol="Content", sep=",")
     # users = [userID[0], userID[1]]
 
-    datPath = "/home/simtoon/git/ACARISv2/datasets/messages.dat"
-    users = ["simtoon1011#0", "simmiefairy#0"]
-    msgs, userID, timestamps = userEmbedder.load_msgs_from_dat(datPath=datPath, limitToUsers=users)
+    # datPath = "/home/simtoon/git/ACARISv2/datasets/messages.dat"
+    # users = ["simtoon1011#0", "simmiefairy#0"]
+    # msgs, userID, timestamps = userEmbedder.load_msgs_from_dat(datPath=datPath, limitToUsers=users)
 
     # txtPath = "/home/simtoon/git/ACARISv2/datasets/allan/DMs.txt"
     # users = ["Simtoon", "AllanMN"]
     # msgs, userID = userEmbedder.load_direct_msgs_from_copied_discord_txt(txtPath=txtPath)
+    
+    linkedInCsvPath = "/home/simtoon/git/ACARISv2/datasets/faten/messages.csv"
+    users = ["Simon Slamka", "Faten Ben Hassine"]
+    msgs, userID, timestamps = userEmbedder.load_msgs_from_linkedin_csv(linkedInCsvPath, usernameCol="FROM", msgCol="CONTENT", sep=",")
 
     print(f"Loaded {len(msgs[0] + msgs[1])} messages from {len(userID)} users")
 
@@ -298,6 +302,8 @@ if __name__ == "__main__":
         elif "sara" in user:
             bIsEmotionallyAvailable = False
             break
+        elif "Faten" in user:
+            bIsEmotionallyAvailable = True
         else:
             bIsEmotionallyAvailable = False
 
@@ -352,26 +358,25 @@ if __name__ == "__main__":
 
     cosim = comparison["cosim"]
     # TODO: dot is very often negative - investigate
-    dot = comparison["dot"]
+    # dot = comparison["dot"]
+    covar = comparison["covar"]
     euclidean = comparison["euclidean"]
     jaccards = comparison["jaccards"]
     convexHullJaccardRatio = sum(jaccards.values()) / len(jaccards)
     mag1 = comparison["magnitude1"]
     mag2 = comparison["magnitude2"]
-    w1, w2, w3, w4, w5, w6, w7, w8, w9 = 0.2, 0.15, 0.19, 0.17, 0.14, 0.05, 0.05, 0.025, 0.025
+    w1, w2, w3, w4, w5, w6, w7, w8, w9 = 0.1, 0.23, 0.22, 0.14, 0.14, 0.07, 0.05, 0.025, 0.025
     wSum = w1 + w2 + w3 + w4 + w5 + w6 + w7 + w8 + w9
     if not isclose(wSum, 1):
-        raise ValueError(f"Weights must sum to 1\nThey now sum to: {wSum}") # sanity check
-    attraction = attr.classify_image("simone.png")
+        raise ValueError(f"Weights must sum to 1\nThey now sum to: {wSum}")  # sanity check
+    attraction = attr.classify_image("faten.png")
     if attraction is not None:
         S, _ = attraction
     else:
         S = 0 # should never happen
-    for user in users:
-        if "Allan" in user:
-            S = 0 # not applicable
     if S != 0:
         S = (S[0]["label"], S[0]["score"] if S[0]["label"] == "pos" else 1 - S[0]["score"])
 
-
-    print(colored(f"\nComposite score: {calc_compat_score(S=S, bIsEmotionallyAvailable=bIsEmotionallyAvailable, tc=tc, lsm=lsm, errr=errr, cosim=cosim, dot=dot, euclidean=euclidean, convexHullJaccardRatio=convexHullJaccardRatio, mag1=mag1, mag2=mag2, w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6, w7=w7, w8=w8, w9=w9)}", "blue"))
+    compositeScore = calc_compat_score(S=S, bIsEmotionallyAvailable=bIsEmotionallyAvailable, tc=tc, lsm=lsm, errr=errr, cosim=cosim, covar=covar, euclidean=euclidean, convexHullJaccardRatio=convexHullJaccardRatio, mag1=mag1, mag2=mag2, w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6, w7=w7, w8=w8, w9=w9)
+    compositeScore = (round(compositeScore[0], 5), compositeScore[1])
+    print(colored(f"\nComposite score: {compositeScore}", "blue"))
